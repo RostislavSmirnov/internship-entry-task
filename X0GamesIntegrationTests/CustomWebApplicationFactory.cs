@@ -14,17 +14,18 @@ namespace X0GamesIntegrationTests
         {
             builder.ConfigureServices(services =>
             {
-                var descriptor = services.SingleOrDefault(
+                ServiceDescriptor? dbContextDescriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(DbContextOptions<GameDbContext>));
 
-                if (descriptor != null)
+                if (dbContextDescriptor != null)
                 {
-                    services.Remove(descriptor);
+                    services.Remove(dbContextDescriptor);
                 }
 
                 services.AddDbContext<GameDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("InMemoryDbForTesting");
+                    string dbName = "InMemoryDb_" + Guid.NewGuid();
+                    options.UseInMemoryDatabase(dbName);
                 });
             });
         }
