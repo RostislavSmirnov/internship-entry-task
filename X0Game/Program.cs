@@ -29,9 +29,9 @@ namespace X0Game
 
                 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
                 builder.Services.AddDbContext<Data.GameDbContext>(options => options.UseNpgsql(connectionString));
-             
-                builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-                
+
+                builder.Services.AddAutoMapper(typeof(Program));
+
                 builder.Services.AddSwaggerGen();
 
                 builder.Services.AddScoped<IGameRepository, GameRepository>();
