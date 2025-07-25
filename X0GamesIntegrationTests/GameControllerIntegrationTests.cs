@@ -9,15 +9,15 @@ using X0Game.DTOs;
 using X0Game.Controllers;
 using Newtonsoft.Json;
 using System.Net;
-
+using X0Game;
 
 namespace X0GamesIntegrationTests
 {
-    public class GameControllerIntegrationTests : IClassFixture<WebApplicationFactory>
+    public class GameControllerIntegrationTests : IClassFixture<CustomWebApplicationFactory<Program>>
     {
         private readonly HttpClient _client;
 
-        public GameControllerIntegrationTests(WebApplicationFactory factory)
+        public GameControllerIntegrationTests(CustomWebApplicationFactory<Program> factory)
         {
             _client = factory.CreateClient();
         }
