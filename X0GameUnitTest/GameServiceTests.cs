@@ -125,8 +125,8 @@ namespace X0GameUnitTest
 
             GameMoveDTO testMove = new GameMoveDTO
             {
-                X = 3,
-                Y = 1,
+                X = 1,
+                Y = 3,
                 Version = "3"
             };
 
@@ -160,8 +160,8 @@ namespace X0GameUnitTest
 
             GameMoveDTO testMove = new GameMoveDTO
             {
-                X = 2,
-                Y = 3,
+                X = 3,
+                Y = 2,
                 Version = "3"
             };
 
@@ -181,9 +181,9 @@ namespace X0GameUnitTest
                 GameId = 1,
                 Field = new List<List<string>>
                 {
-                    new List<string> { "o", "x", "" },
-                    new List<string> { "x", "x", "o" },
-                    new List<string> { "o", "o", "x" }
+                    new List<string> { "x", "o", "o" },
+                    new List<string> { "o", "x", "x" },
+                    new List<string> { "x", "o", "" }
                 },
                 FieldSize = 3,
                 VictoryCondition = 3,
@@ -196,7 +196,7 @@ namespace X0GameUnitTest
             GameMoveDTO testMove = new GameMoveDTO
             {
                 X = 3,
-                Y = 1,
+                Y = 3,
                 Version = "3"
             };
 

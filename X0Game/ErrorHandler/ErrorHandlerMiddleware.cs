@@ -1,60 +1,51 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging; 
+using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace X0Game.ErrorHandler
 {
     public class ErrorHandlerMiddleware
     {
         private readonly RequestDelegate _next;
-        public ErrorHandlerMiddleware(RequestDelegate next)
+        private readonly ILogger<ErrorHandlerMiddleware> _logger;
+
+        public ErrorHandlerMiddleware(RequestDelegate next, ILogger<ErrorHandlerMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
+
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
                 await _next(context);
             }
-            catch (Exception exceptionForHandler)
+            catch (Exception ex)
             {
-                await HandleExceptionAsync(context, exceptionForHandler);
+                _logger.LogError(ex, "Произошла необработанная ошибка: {Message}", ex.Message);
+                await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.ContentType = "application/json";
 
-            ErrorResponse errorMassage = new ErrorResponse
+            // Создаем стандартизированный ответ
+            var response = new
             {
-                StatusCode = StatusCodes.Status500InternalServerError,
-                Timestamp = DateTime.UtcNow,
-                Message = exception switch
-                {
-                    ArgumentNullException => "Параметр не может быть null",
-                    ArgumentException => "Некорректный аргумент",
-                    KeyNotFoundException => "Запись не найдена",
-                    _ => "Произошла непредвиденная ошибка"
-                },
-                Details = exception.Message
+                StatusCode = context.Response.StatusCode,
+                Message = "Произошла внутренняя ошибка сервера. Пожалуйста, попробуйте позже.",
+                Details = exception.Message 
             };
 
-            switch (exception)
-            {
-                case DbUpdateException:
-                    errorMassage.StatusCode = StatusCodes.Status400BadRequest;
-                    errorMassage.Message = "Произошла ошибка при работе с базой данных";
-                    break;
-                default:
-                    errorMassage.StatusCode = StatusCodes.Status500InternalServerError;
-                    errorMassage.Message = "Произошла непредвиденная ошибка";
-                    break;
-            }
-
-            context.Response.StatusCode = errorMassage.StatusCode;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(errorMassage));
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
 }
