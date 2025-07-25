@@ -1,0 +1,6 @@
+@X0Game_HostAddress = http://localhost:5231
+
+GET {{X0Game_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

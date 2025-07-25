@@ -1,0 +1,45 @@
+﻿version: '3.8'
+
+services:
+  api:
+    image: x0gameapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - x0game_network
+    volumes:
+      - ./Logs:/app/Logs
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=X0GameDb;Username=postgres;Password=mototaz12
+      - ASPNETCORE_ENVIRONMENT=Development 
+
+  db:
+    image: postgres:16.0
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mototaz12
+      POSTGRES_DB: X0GameDb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d X0GameDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - x0game_network
+
+networks:
+  x0game_network:
+    driver: bridge
+
+volumes:
+  db_data:
