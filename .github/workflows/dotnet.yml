@@ -20,7 +20,7 @@ jobs:
         dotnet-version: 8.0.x 
 
     - name: Restore dependencies
-      run: dotnet restore "X0Game.sln""
+      run: dotnet restore "X0Game.sln"
 
     - name: Build
       run: dotnet build "X0Game.sln" --no-restore 
