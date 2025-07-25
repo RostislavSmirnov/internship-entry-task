@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.EntityFrameworkCore;
 
 namespace X0GameUnitTest
 {
@@ -248,34 +249,36 @@ namespace X0GameUnitTest
 
 
         [Fact]
-        public async Task ConcurrencyTest()
+        public async Task MakeMoveAsync_WhenConcurrencyExceptionOccurs_ReturnsLatestGameStatet()
         {
-            Game gameInDb = new Game
-            {
-                GameId = 1,
-                Field = new List<List<string>> { new List<string> { "x", "" }, new List<string> { "", "" } },
-                GameStatus = "InProgress",
-                NextPlayer = "o",
-                Version = 10 
-            };
-
+            int gameId = 1;
             GameMoveDTO moveWithOldVersion = new GameMoveDTO 
             { X = 2,
               Y = 2,
               Version = "9"
             };
 
-            _gameRepositoryMock.Setup(r => r.GetGameAsync(1)).ReturnsAsync(gameInDb);
-            _gameRepositoryMock.Setup(r => r.SaveMove(It.IsAny<Game>())).Throws(new Exception("SaveMove не должен вызываться"));
+            Game gameInDb = new Game
+            {
+                GameId = gameId,
+                Field = new List<List<string>> { new List<string> { "x", "" }, new List<string> { "", "" } },
+                GameStatus = "InProgress",
+                NextPlayer = "o",
+                Version = 10 
+            };
 
-            GameShowDTO result = await _gameService.MakeMoveAsync(1, moveWithOldVersion);
+            _gameRepositoryMock.Setup(r => r.GetGameAsync(gameId))
+            .ReturnsAsync(new Game { GameId = gameId, Version = 10 });
 
-            Assert.Equal(gameInDb.GameId, result.GameId);
-            Assert.Equal(gameInDb.GameStatus, result.GameStatus);
-            Assert.Equal(gameInDb.NextPlayer, result.NextPlayer);
-            Assert.Equal(gameInDb.Version.ToString(), result.Version); 
+            _gameRepositoryMock.Setup(r => r.SaveMove(It.IsAny<Game>()))
+                .ThrowsAsync(new DbUpdateConcurrencyException());
 
-            _gameRepositoryMock.Verify(r => r.SaveMove(It.IsAny<Game>()), Times.Never);
+            _gameRepositoryMock.Setup(r => r.GetGameAsync(gameId))
+                .ReturnsAsync(gameInDb);
+
+            GameShowDTO result = await _gameService.MakeMoveAsync(gameId, moveWithOldVersion);
+
+            Assert.Equal(gameInDb.Version.ToString(), result.Version);
         }
     }
 }

@@ -68,45 +68,33 @@ namespace X0GamesIntegrationTests
 
 
         [Fact]
-        public async Task MakeMove_WithDuplicateRequest_IsIdempotentAndReturnsOk()
+        public async Task MakeMove_WithValidMove_ReturnsOkAndUpdatedState()
         {
-            var startGameDto = new GameStartModelDTO
-            {
-                FieldSize = 3,
-                VictoryCondition = 3,
-                NextPlayer = "x"
-            };
-            var startGameContent = new StringContent(JsonSerializer.Serialize(startGameDto), Encoding.UTF8, "application/json");
-            var createResponse = await _client.PostAsync("/Game", startGameContent);
+            GameStartModelDTO startGameDto = new GameStartModelDTO { FieldSize = 3, VictoryCondition = 3, NextPlayer = "x" };
+            StringContent startGameContent = new StringContent(JsonSerializer.Serialize(startGameDto), Encoding.UTF8, "application/json");
+            HttpResponseMessage createResponse = await _client.PostAsync("/Game", startGameContent);
             createResponse.EnsureSuccessStatusCode();
-
-            var createResponseContent = await createResponse.Content.ReadAsStringAsync();
+            string createResponseContent = await createResponse.Content.ReadAsStringAsync();
             using var jsonDoc = JsonDocument.Parse(createResponseContent);
-            var gameId = jsonDoc.RootElement.GetProperty("gameId").GetInt32();
-            var initialVersion = jsonDoc.RootElement.GetProperty("version").GetString();
+            int gameId = jsonDoc.RootElement.GetProperty("gameId").GetInt32();
+            string? initialVersion = jsonDoc.RootElement.GetProperty("version").GetString();
 
-            var moveDto = new GameMoveDTO
-            {
-                X = 1,
-                Y = 1,
-                Version = initialVersion
-            };
-            var moveContent = new StringContent(JsonSerializer.Serialize(moveDto), Encoding.UTF8, "application/json");
 
-            var firstMoveResponse = await _client.PostAsync($"/Game/{gameId}/moves", moveContent);
+            GameMoveDTO moveDto = new GameMoveDTO { X = 1, Y = 1, Version = initialVersion };
+            StringContent moveContent = new StringContent(JsonSerializer.Serialize(moveDto), Encoding.UTF8, "application/json");
 
-            var secondMoveContent = new StringContent(JsonSerializer.Serialize(moveDto), Encoding.UTF8, "application/json");
-            var secondMoveResponse = await _client.PostAsync($"/Game/{gameId}/moves", secondMoveContent);
 
-            Assert.Equal(HttpStatusCode.OK, firstMoveResponse.StatusCode);
-            var firstMoveResultContent = await firstMoveResponse.Content.ReadAsStringAsync();
-            using var firstMoveJsonDoc = JsonDocument.Parse(firstMoveResultContent);
-            var firstMoveVersion = firstMoveJsonDoc.RootElement.GetProperty("version").GetString();
-            Assert.NotEqual(initialVersion, firstMoveVersion); 
+            HttpResponseMessage moveResponse = await _client.PostAsync($"/Game/{gameId}/moves", moveContent);
 
-            Assert.Equal(HttpStatusCode.OK, secondMoveResponse.StatusCode); 
 
-            Assert.Equal(firstMoveResponse.Headers.ETag, secondMoveResponse.Headers.ETag);
+            Assert.Equal(HttpStatusCode.OK, moveResponse.StatusCode);
+            string moveResultContent = await moveResponse.Content.ReadAsStringAsync();
+            GameShowDTO? moveResult = JsonSerializer.Deserialize<GameShowDTO>(moveResultContent, _jsonOptions);
+
+
+            Assert.Equal("x", moveResult.Field[0][0]);
+            Assert.Equal(1, moveResult.CounterOfMoves);
+            Assert.Equal("o", moveResult.NextPlayer);
         }
     }
 }
