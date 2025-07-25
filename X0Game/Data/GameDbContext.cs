@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using X0Game.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace X0Game.Data
 {
@@ -16,8 +16,8 @@ namespace X0Game.Data
                 .Property(g => g.Field)
                 .HasColumnType("jsonb")
                 .HasConversion(
-                    v => JsonConvert.SerializeObject(v),
-                    v => JsonConvert.DeserializeObject<List<List<string>>>(v));
+                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                     v => JsonSerializer.Deserialize<List<List<string>>>(v, (JsonSerializerOptions)null));
 
             modelBuilder.Entity<Game>(entity =>
             {
