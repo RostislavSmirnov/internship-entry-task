@@ -34,7 +34,7 @@ namespace X0GamesIntegrationTests
             };
             StringContent content = new StringContent(JsonConvert.SerializeObject(testStartModel), Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await _client.PostAsync("/api/Game", content);
+            HttpResponseMessage response = await _client.PostAsync("/Game", content);
 
             response.EnsureSuccessStatusCode();
 
@@ -57,7 +57,7 @@ namespace X0GamesIntegrationTests
         public async Task GetGameReturn404() 
         {
             int IdForSearch = 9999;
-            HttpResponseMessage response = await _client.GetAsync($"/api/Game/{IdForSearch}");
+            HttpResponseMessage response = await _client.GetAsync($"/Game/{IdForSearch}");
             Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
         }
 
