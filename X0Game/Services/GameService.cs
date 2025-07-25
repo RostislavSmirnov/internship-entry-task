@@ -98,7 +98,7 @@ namespace X0Game.Services
             }
             game.Field[rowIndex][columnIndex] = actualNextPlayer;
             game.CounterOfMoves++;
-            await GameAnalyser(game, actualNextPlayer);
+            GameAnalyser(game, actualNextPlayer);
             
             if (game.GameStatus == "InProgress")
             {
@@ -113,14 +113,14 @@ namespace X0Game.Services
             {
                 _logger.LogError(ex, "Ошибка при сохранении хода в игре с ID {GameId} из-за конфликта версий.", gameId);
                 Game actualGame = await _gameRepository.GetGameAsync(gameId);
-                throw;
+                return _mapper.Map<GameShowDTO>(actualGame);
             }
 
             return _mapper.Map<GameShowDTO>(game);
         }
 
 
-        private async Task GameAnalyser(Game game, string actualNextPlayer)
+        private void GameAnalyser(Game game, string actualNextPlayer)
         {
             int size = game.FieldSize;
             int victory = game.VictoryCondition;
@@ -138,8 +138,7 @@ namespace X0Game.Services
                         if (count >= victory)
                         {
                             game.GameStatus = $"{player} wins";
-                            _logger.LogInformation("Игра {GameId}: победа игрока {Player} по горизонтали", game.GameId, player);
-                            await _gameRepository.SaveMove(game);
+                            _logger.LogInformation("Игра {GameId}: победа игрока {Player} по горизонтали", game.GameId, player);                           
                             return;
                         }
                     }
@@ -163,7 +162,6 @@ namespace X0Game.Services
                         {
                             game.GameStatus = $"{player} wins";
                             _logger.LogInformation("Игра {GameId}: победа игрока {Player} по вертикали", game.GameId, player);
-                            await _gameRepository.SaveMove(game);
                             return;
                         }
                     }
@@ -189,7 +187,6 @@ namespace X0Game.Services
                             {
                                 game.GameStatus = $"{player} wins";
                                 _logger.LogInformation("Игра {GameId}: победа игрока {Player} по диагонали", game.GameId, player);
-                                await _gameRepository.SaveMove(game);
                                 return;
                             }
                         }
@@ -216,7 +213,6 @@ namespace X0Game.Services
                             {
                                 game.GameStatus = $"{player} wins";
                                 _logger.LogInformation("Игра {GameId}: победа игрока {Player} по диагонали", game.GameId, player);
-                                await _gameRepository.SaveMove(game);
                                 return;
                             }
                         }
@@ -233,7 +229,6 @@ namespace X0Game.Services
             {
                 game.GameStatus = "Draw";
                 _logger.LogInformation("Игра {GameId} завершена вничью", game.GameId);
-                await _gameRepository.SaveMove(game);
             }
         }
 

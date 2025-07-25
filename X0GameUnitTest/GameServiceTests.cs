@@ -181,23 +181,23 @@ namespace X0GameUnitTest
                 GameId = 1,
                 Field = new List<List<string>>
                 {
-                    new List<string> { "x", "o", "o" },
-                    new List<string> { "o", "x", "x" },
-                    new List<string> { "x", "o", "" }
+                     new List<string> { "x", "o", "x" },
+                     new List<string> { "x", "",  "o" }, 
+                     new List<string> { "o", "x", "o" }
                 },
                 FieldSize = 3,
                 VictoryCondition = 3,
                 CounterOfMoves = 8,
                 GameStatus = "InProgress",
                 NextPlayer = "o",
-                Version = 3
+                Version = 8
             };
 
             GameMoveDTO testMove = new GameMoveDTO
             {
-                X = 3,
-                Y = 3,
-                Version = "3"
+                X = 2,
+                Y = 2,
+                Version = "8"
             };
 
             _gameRepositoryMock.Setup(repo => repo.GetGameAsync(1)).ReturnsAsync(testGame);
